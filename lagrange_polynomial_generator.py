@@ -1,7 +1,7 @@
 """
 This script performs Lagrange interpolation for a set of points entered by the user.
 It prompts the user to input points as coordinates in the format 'x y' and displays them.
-Then, it computes the Lagrange polynomial that interpolates the given points and prints it.
+Then, it computes the Lagrange polynomial that interpolates the given points, computes the polynomial and plots a graph.
 
 Author: Muddassir Khalidi
 Date: 14 February 2024
@@ -22,6 +22,7 @@ Example:
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 import sys
 from tabulate import tabulate
 
@@ -30,6 +31,7 @@ def get_points():
     Prompt the user to enter points as coordinates and return a list of points.
     """
     coordinates = []
+    x_coords = []
     print('''Please enter the points as coordinates in the format 'x y'. 
 Press Enter without typing anything to finish.''')
     number = 1
@@ -37,13 +39,21 @@ Press Enter without typing anything to finish.''')
         try:
             point_input = input(f"Point {number}: ").strip()
             if not point_input:
+                if not coordinates:
+                    print('No points entered!')
+                    continue
                 break  # Break the loop if the input is empty
             x_coordinate, y_coordinate = map(float, point_input.split(' '))
+            if x_coordinate in x_coords:
+                print('Abscissae cannot be the same!')
+                continue
             coordinates.append((x_coordinate, y_coordinate))
+            x_coords.append(x_coordinate)
             number += 1
-        except ValueError:
+        except:
             print('Please enter a valid point as two numbers separated by a space.')
     headers = ['x', 'f(x)']
+    coordinates = list(set(coordinates))
     print(tabulate(coordinates, headers=headers))
     return coordinates
 
@@ -73,6 +83,20 @@ def get_polynomial(coordinates):
         poly += lagrange_poly * coordinate[1]
     return poly
 
+def plot_polynomial(polynomial, points):
+    """
+    Plot the polynomial and the given points.
+    """
+    x_values = np.linspace(min(point[0] for point in points), max(point[0] for point in points), 100)
+    y_values = polynomial(x_values)
+    plt.plot(x_values, y_values, label='Lagrange Polynomial')
+    plt.scatter(*zip(*points), color='red', label='Given Points')
+    plt.xlabel('x')
+    plt.ylabel('f(x)')
+    plt.title('Lagrange Interpolation')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
 
 def explain_lagrange_polynomial():
     """
@@ -109,6 +133,7 @@ if __name__ == '__main__':
             points = get_points()
             p = get_polynomial(points)
             print("Lagrange Polynomial:", p)
+            plot_polynomial(p, points)
         else:
             print('Goodbye!')
             sys.exit()
