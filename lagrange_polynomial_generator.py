@@ -24,43 +24,36 @@ Example:
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+from tkinter import *
+from tkinter import messagebox
 from tabulate import tabulate
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 def get_points():
-    """
-    Prompt the user to enter points as coordinates and return a list of points.
-    """
     coordinates = []
     x_coords = []
-    print('''Please enter the points as coordinates in the format 'x y'. 
-Press Enter without typing anything to finish.''')
-    number = 1
-    while True:
+    points = point_entries.get("1.0", END).strip().split("\n")
+    for number, point in enumerate(points, start=1):
         try:
-            point_input = input(f"Point {number}: ").strip()
-            if not point_input:
-                if not coordinates:
-                    print('No points entered!')
-                    continue
-                break  # Break the loop if the input is empty
-            x_coordinate, y_coordinate = map(float, point_input.split(' '))
+            x_coordinate, y_coordinate = map(float, point.split())
             if x_coordinate in x_coords:
-                print('Abscissae cannot be the same!')
-                continue
+                messagebox.showerror("Error", "Abscissae cannot be the same!")
+                return None
             coordinates.append((x_coordinate, y_coordinate))
             x_coords.append(x_coordinate)
-            number += 1
-        except:
-            print('Please enter a valid point as two numbers separated by a space.')
+        except ValueError:
+            messagebox.showerror("Error", f"Invalid point format at point {number}!")
+            return None
+
     headers = ['x', 'f(x)']
     coordinates = list(set(coordinates))
-    print(tabulate(coordinates, headers=headers))
+    points_display.config(state=NORMAL)
+    points_display.delete("1.0", END)
+    points_display.insert(END, tabulate(coordinates, headers=headers))
+    points_display.config(state=DISABLED)
     return coordinates
 
 def lagrange_interpolation(coordinates):
-    """
-    Perform Lagrange interpolation on the given points and return a list of Lagrange polynomials.
-    """
     lagrange_polynomials = []
     for point_x in coordinates:
         poly = np.poly1d([1.0])
@@ -74,9 +67,6 @@ def lagrange_interpolation(coordinates):
     return lagrange_polynomials
 
 def get_polynomial(coordinates):
-    """
-    Compute the Lagrange polynomial for the given points.
-    """
     interpolated_polynomials = lagrange_interpolation(coordinates)
     poly = np.poly1d(0)
     for coordinate, lagrange_poly in zip(coordinates, interpolated_polynomials):
@@ -84,57 +74,83 @@ def get_polynomial(coordinates):
     return poly
 
 def plot_polynomial(polynomial, points):
-    """
-    Plot the polynomial and the given points.
-    """
     x_values = np.linspace(min(point[0] for point in points), max(point[0] for point in points), 100)
     y_values = polynomial(x_values)
-    plt.plot(x_values, y_values, label='Lagrange Polynomial')
-    plt.scatter(*zip(*points), color='red', label='Given Points')
-    plt.xlabel('x')
-    plt.ylabel('f(x)')
-    plt.title('Lagrange Interpolation')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+    ax.clear()
+    ax.plot(x_values, y_values, label='Lagrange Polynomial')
+    ax.scatter(*zip(*points), color='red', label='Given Points')
+    ax.set_xlabel('x')
+    ax.set_ylabel('f(x)')
+    ax.set_title('Lagrange Interpolation')
+    ax.legend()
+    ax.grid(True)
+    canvas.draw()
+
+def on_generate_click():
+    points = get_points()
+    if points:
+        p = get_polynomial(points)
+        polynomial_display.config(state=NORMAL)
+        polynomial_display.delete("1.0", END)
+        polynomial_display.insert(END, "Lagrange Polynomial:\n")
+        polynomial_display.insert(END, str(p))
+        polynomial_display.config(state=DISABLED)
+        plot_polynomial(p, points)
 
 def explain_lagrange_polynomial():
-    """
-    Provides a user-friendly explanation of the Lagrange polynomial and its concept.
-    """
-    print("Lagrange Polynomial Explained:\n")
-    print("**What is a Lagrange Polynomial?**")
-    print("The Lagrange polynomial is a mathematical method used for interpolation, which means it helps us find a smooth curve that passes through a set of given points.\n")
+    explanation = """
+Lagrange Polynomial Explained:
 
-    print("**How Does it Work?**")
-    print("Imagine you have a set of points on a graph. The Lagrange polynomial calculates a polynomial equation that connects these points smoothly. It's like drawing a curve that touches each point exactly.\n")
+**What is a Lagrange Polynomial?**
+The Lagrange polynomial is a mathematical method used for interpolation, which means it helps us find a smooth curve that passes through a set of given points.
 
-    print("**Why is it Useful?**")
-    print("Interpolation is handy when you want to estimate values between known data points. For example, if you know the temperature at 9 AM and 12 PM, you can use interpolation to estimate the temperature at 10 AM.\n")
+**How Does it Work?**
+Imagine you have a set of points on a graph. The Lagrange polynomial calculates a polynomial equation that connects these points smoothly. It's like drawing a curve that touches each point exactly.
 
-    print("**Understanding the Algorithm:**")
-    print("1. **For each point:** We create a small polynomial (called a basis polynomial) that equals 1 at that point and 0 at all other points.")
-    print("2. **Combine Polynomials:** We multiply each basis polynomial by the corresponding y-value and add them all together. This gives us the Lagrange polynomial.\n")
+**Why is it Useful?**
+Interpolation is handy when you want to estimate values between known data points. For example, if you know the temperature at 9 AM and 12 PM, you can use interpolation to estimate the temperature at 10 AM.
 
-    print("**Example:**")
-    print("Let's say we have points (1, 2), (2, 3), and (3, 4). The Lagrange polynomial method constructs a curve that smoothly passes through these points. This curve can help us estimate values at any point between 1 and 3.\n")
+**Understanding the Algorithm:**
+1. **For each point:** We create a small polynomial (called a basis polynomial) that equals 1 at that point and 0 at all other points.
+2. **Combine Polynomials:** We multiply each basis polynomial by the corresponding y-value and add them all together. This gives us the Lagrange polynomial.
 
-    print("**Why it Matters:**")
-    print("The Lagrange polynomial method is widely used in various fields like physics, engineering, and computer graphics. It's a powerful tool for approximating functions and understanding data trends.\n")
+**Example:**
+Let's say we have points (1, 2), (2, 3), and (3, 4). The Lagrange polynomial method constructs a curve that smoothly passes through these points. This curve can help us estimate values at any point between 1 and 3.
+
+**Why it Matters:**
+The Lagrange polynomial method is widely used in various fields like physics, engineering, and computer graphics. It's a powerful tool for approximating functions and understanding data trends.
+"""
+    messagebox.showinfo("Lagrange Polynomial Explanation", explanation)
 
 
-if __name__ == '__main__':
-    print('Welcome to your personal Lagrange Polynomial Generator!')
-    explain_lagrange_polynomial()
-    while True:
-        print('-' * 50)
-        state = input('Enter 1 to try the program, 0 to exit: ')
-        if state == '1':
-            points = get_points()
-            p = get_polynomial(points)
-            print("Lagrange Polynomial:", p)
-            plot_polynomial(p, points)
-        else:
-            print('Goodbye!')
-            sys.exit()
+# GUI Setup
+root = Tk()
+root.title("Lagrange Polynomial Generator")
 
+frame = Frame(root)
+frame.pack(padx=10, pady=10)
+
+label = Label(frame, text="Enter points as 'x y' (one per line):")
+label.grid(row=0, column=0, sticky=W)
+
+point_entries = Text(frame, width=40, height=6)
+point_entries.grid(row=1, column=0, columnspan=2, padx=10, pady=5)
+
+generate_button = Button(frame, text="Generate Polynomial", command=on_generate_click)
+generate_button.grid(row=2, column=0, pady=5)
+
+explanation_button = Button(frame, text="Explanation", command=explain_lagrange_polynomial)
+explanation_button.grid(row=2, column=1, pady=5)
+
+points_display = Text(frame, width=40, height=6, state=DISABLED)
+points_display.grid(row=3, column=0, columnspan=2, padx=10, pady=5)
+
+polynomial_display = Text(frame, width=40, height=6, state=DISABLED)
+polynomial_display.grid(row=4, column=0, columnspan=2, padx=10, pady=5)
+
+# Create a figure and canvas for plotting
+fig, ax = plt.subplots(figsize=(6, 4))
+canvas = FigureCanvasTkAgg(fig, master=root)
+canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=1)
+
+root.mainloop()
