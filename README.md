@@ -23,3 +23,6 @@ The program will compute the Lagrange polynomial and plot the curve passing thro
 - Python 3.x
 - NumPy
 - Matplotlib
+- tkinter
+- tabulate
+- sys
