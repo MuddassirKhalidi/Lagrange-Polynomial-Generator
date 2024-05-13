@@ -5,20 +5,6 @@ Then, it computes the Lagrange polynomial that interpolates the given points, co
 
 Author: Muddassir Khalidi
 Date: 14 February 2024
-
-Example:
-    $ python lagrange_polynomial_generator.py
-    Please enter the points as coordinates in the format 'x y'. 
-    Press Enter without typing anything to finish.
-    Point 1: 1 2
-    Point 2: 2 3
-    Point 3: 3 4
-    x    f(x)
-    ---  ------
-    1     2
-    2     3
-    3     4
-    1.0 * x^2 + -3.0 * x + 2.0
 """
 
 import numpy as np
