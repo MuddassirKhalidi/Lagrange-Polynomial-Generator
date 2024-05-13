@@ -36,6 +36,8 @@ def get_points():
     for number, point in enumerate(points, start=1):
         try:
             x_coordinate, y_coordinate = map(float, point.split())
+            if (x_coordinate, y_coordinate) in coordinates:
+                continue
             if x_coordinate in x_coords:
                 messagebox.showerror("Error", "Abscissae cannot be the same!")
                 return None
